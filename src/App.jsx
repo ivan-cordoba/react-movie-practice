@@ -26,38 +26,69 @@ class App extends React.Component {
   }
 
   handleSearch() {
-    var filteredList = this.movies.filter(movie => movie.title.toLocaleLowerCase().includes(this.searchInput.toLocaleLowerCase()));
+    var filteredList = this.movies.filter(movie => movie.title.toLowerCase().includes(this.searchInput.toLowerCase()));
     if (filteredList.length === 0) {
-      filteredList = [{title: 'No Results'}];
+      filteredList = [{title: 'No Results', watchStatus: 0}, {title: 'No Results', watchStatus: 1}];
     }
     this.setState({
       movies: filteredList
     });
   }
 
-  handleAddMovie() {
-    var newMovie = {title: this.titleInput};
-    this.movies.push(newMovie);
-    this.displayAllMovies();
+
+  toggleMovie(index) {
+    if (this.movies[index].watchStatus === 0) {
+      this.movies[index].watchStatus = 1;
+    } else {
+      this.movies[index].watchStatus = 0;
+    }
+    this.handleSearch();
   }
 
   render() {
     return (
-      <div>
-        <h2>Movies List</h2>
-        <input onChange={this.updateAddMovieInput.bind(this)}/><button onClick={this.handleAddMovie.bind(this)}>Add</button>
+      <div id="content">
+        <input onChange={this.updateAddMovieInput.bind(this)}/><button onClick={this.apiCallSearch.bind(this)}>Add</button>
         <input onChange={this.updateInput.bind(this)}/><button onClick={this.handleSearch.bind(this)}>Go</button>
-        <table><tbody>
-          <tr><th>Movies</th></tr>
-          {
-            this.state.movies.map(function(movie) {
-              return (<tr><td>{movie.title}</td></tr>);
-            })
-          }
-        </tbody></table>    
+        <MoviesList movies={this.state.movies} toggleMovie={this.toggleMovie.bind(this)}/>
       </div>
     );
   }
+
+
+  apiCallSearch() {
+    $.get({
+      url: 'https://api.themoviedb.org/3/search/movie',
+      data: {
+        api_key: window.api_key,
+        query: 'Interstellar',
+        page: 1
+      },
+      success: (response) => {
+        this.apiCallDetails(response.results[0].id);
+      }
+    });
+  }
+
+  apiCallDetails(videoId) {
+    $.get({
+      url: 'https://api.themoviedb.org/3/movie/' + videoId,
+      data: { api_key: window.api_key },
+      success: (response) => {
+        console.log(response);
+        var newMovie = {
+          title: response.original_title, 
+          watchStatus: 0,
+          year: response.release_date.substr(0, 4),
+          runtime: response.runtime,
+          poster_path: 'http://image.tmdb.org/t/p/w185/' + response.poster_path
+        };
+        this.movies.push(newMovie);
+        this.handleSearch();
+      }
+    });
+  }
+
 }
 window.App = App;
 ReactDOM.render(<App/>, document.getElementById('app'));

@@ -1,0 +1,17 @@
+body {
+  text-align: center;
+}
+
+#content, table {
+  margin: auto;
+  width: 50%;
+}
+
+#description {
+  background-color: grey;
+  margin: 0;
+}
+
+td{
+  border: 1px solid black;
+}

@@ -11,3 +11,5 @@ compiled/
 .vscode/
 
 package-lock.json
+
+tmdb.js
